@@ -45,6 +45,13 @@ public class Transaction {
 
 
     // Sell a game (reduce quantity and create transaction)
+/**     * Sells a game from the inventory to a customer, applying any discounts and updating stock.
+     *
+     * @param inventory The inventory containing the games.
+     * @param gameName  The name of the game to sell.
+     * @param console   The console type of the game.
+     * @param customer  The customer purchasing the game.
+     */
     public static void sellGame(Inventory inventory, String gameName, ConsoleType console, Customer customer) {
         for (Game g : inventory.getGames()) {
             if (g.getTitle().equalsIgnoreCase(gameName) && g.getConsoleType() == console) {
@@ -71,6 +78,13 @@ public class Transaction {
         System.out.println("❌ Game not found in inventory.");
     }
 
+    /** Trade in a game (increase quantity and give discount)
+     * Handles the trade-in of a game by a customer, updating inventory and applying discounts.
+     * @param inventory
+     * @param customer
+     * @param gameTitle
+     * @param console
+     */
     public static void tradeInGame(Inventory inventory, Customer customer, String gameTitle, ConsoleType console) {
         for (Game g : inventory.getGames()) {
             if (g.getTitle().equalsIgnoreCase(gameTitle) && g.getConsoleType() == console) {

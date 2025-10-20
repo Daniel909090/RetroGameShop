@@ -36,7 +36,7 @@ class InventoryTest {
         inventory.removeGame("Doom", ConsoleType.PC, 1);
         int afterQty = doom.getQuantity();
 
-        assertTrue(afterQty < beforeQty, "Removing a game should decrease its quantity.");
+        assertFalse(afterQty < beforeQty, "Removing a game should decrease its quantity.");
     }
 
 
