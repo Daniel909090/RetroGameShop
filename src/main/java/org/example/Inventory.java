@@ -48,7 +48,7 @@ public class Inventory {
         };
     }
 
-    public void searchGame(String keyword) {
+    public Game searchGame(String keyword) {
         boolean found = false;
         System.out.println("\n🔍 Search results for: " + keyword);
 
@@ -63,19 +63,21 @@ public class Inventory {
             if (title.contains(search) || console.contains(search)) {
                 System.out.println(g);
                 found = true;
+                return g;
+
             }
         }
-
 
 
         if (!found) {
             System.out.println("❌ No matching games found.");
         }
+        return null;
     }
 
-     //FOR JUNIT TESTS
+    //FOR JUNIT TESTS
     // ✅ For programmatic or JUnit use
-    public void addGame(Game game) {
+    public boolean addGame(Game game) throws Exception {
         for (Game g : games) {
             if (g.getTitle().equalsIgnoreCase(game.getTitle())
                     && g.getConsoleType() == game.getConsoleType()) {
@@ -83,15 +85,20 @@ public class Inventory {
                 int newQty = g.getQuantity() + game.getQuantity();
                 if (newQty > MAX_STOCK_PER_GAME) {
                     g.setQuantity(MAX_STOCK_PER_GAME);
-                    System.out.println("⚠️ Stock limited to 10 units.");
+                    throw new Exception("⚠️ Stock limited to 10 units.");
+                    //return false;
                 } else {
                     g.setQuantity(newQty);
+                    return true;
                 }
-                return;
+
             }
+            //g.setQuantity(1);
+
         }
         games.add(game);
-        System.out.println("✅ Game added: " + game.getTitle());
+        return true;
+        //System.out.println("✅ Game added: " + game.getTitle());
     }
 
     // ✅ For automated tests or backend logic — remove a specific number of copies
@@ -116,108 +123,9 @@ public class Inventory {
 
 
 
-    // ➕ Add a game with robust validation (quantity, types, ranges)
-    public void addGame() {
-        Scanner sc = new Scanner(System.in);
 
-        System.out.println("\n--- ➕ Add New Game ---");
-
-        System.out.print("Enter game title: ");
-        String title = sc.nextLine().trim();
-        if (title.isEmpty()) {
-            System.out.println("❌ Title cannot be empty.");
-            return;
-        }
-
-        // Console type (loop until valid)
-        ConsoleType console;
-        while (true) {
-            System.out.print("Enter console type (PLAYSTATION, XBOX, NINTENDO, SEGA, PC): ");
-            String consoleStr = sc.nextLine().trim().toUpperCase();
-            try {
-                console = ConsoleType.valueOf(consoleStr);
-                break;
-            } catch (IllegalArgumentException e) {
-                System.out.println("❌ Invalid console type. Try again.");
-            }
-        }
-
-        // Find existing game (same title + console) to compute how many we can add
-        Game existing = null;
-        for (Game g : games) {
-            if (g.getTitle().equalsIgnoreCase(title) && g.getConsoleType() == console) {
-                existing = g;
-                break;
-            }
-        }
-
-        int existingQty = (existing == null) ? 0 : existing.getQuantity();
-        int allowedToAdd = MAX_STOCK_PER_GAME - existingQty;
-
-        if (allowedToAdd <= 0) {
-            System.out.println("⚠️ Stock for this game is already at the maximum (" + MAX_STOCK_PER_GAME + ").");
-            return;
-        }
-
-        // Year (basic sane range; adjust if you like)
-        int year = readIntInRange(sc, "Enter year of release", 1970, 2100);
-
-        // Quantity (must be integer and within range allowed)
-        int quantity = readIntInRange(sc,
-                "Enter quantity (1.." + allowedToAdd + ")", 1, allowedToAdd);
-
-        // Price (non-negative)
-        double price = readDoubleMin(sc, "Enter price (£)", 0.0);
-
-        if (existing != null) {
-            existing.setQuantity(existingQty + quantity);
-            // Optional: update price if you want to overwrite; comment out to keep old price
-            existing.setPrice(price);
-            System.out.println("📈 Updated stock for: " + existing.getTitle() +
-                    " | New stock: " + existing.getQuantity() +
-                    " | Price: £" + String.format("%.2f", existing.getPrice()));
-        } else {
-            Game newGame = new Game(title, console, year, quantity, price);
-            games.add(newGame);
-            System.out.println("✅ Added new game: " + newGame);
-        }
-    }
 
     /* ----------------- Helpers (keep them private inside Inventory) ----------------- */
-
-    private int readIntInRange(Scanner sc, String prompt, int min, int max) {
-        while (true) {
-            System.out.print(prompt + ": ");
-            String line = sc.nextLine().trim();
-            try {
-                int val = Integer.parseInt(line);
-                if (val < min || val > max) {
-                    System.out.println("❌ Please enter a number between " + min + " and " + max + ".");
-                } else {
-                    return val;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("❌ Please enter a valid integer.");
-            }
-        }
-    }
-
-    private double readDoubleMin(Scanner sc, String prompt, double minInclusive) {
-        while (true) {
-            System.out.print(prompt + ": ");
-            String line = sc.nextLine().trim();
-            try {
-                double val = Double.parseDouble(line);
-                if (val < minInclusive) {
-                    System.out.println("❌ Value must be at least " + minInclusive + ".");
-                } else {
-                    return val;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("❌ Please enter a valid number.");
-            }
-        }
-    }
 
 
     public void removeGame() {
@@ -307,5 +215,21 @@ public class Inventory {
     // ✅ Single getter (no need for both)
     public ArrayList<Game> getGames() {
         return games;
+    }
+    public int readIntInRange (Scanner sc, String prompt,int min, int max){
+        while (true) {
+            System.out.print(prompt + ": ");
+            String line = sc.nextLine().trim();
+            try {
+                int val = Integer.parseInt(line);
+                if (val < min || val > max) {
+                    System.out.println("❌ Please enter a number between " + min + " and " + max + ".");
+                } else {
+                    return val;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Please enter a valid integer.");
+            }
+        }
     }
 }

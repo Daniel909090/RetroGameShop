@@ -73,9 +73,10 @@ public class AppManager {
         sc.nextLine(); // consume newline
 
         switch (option) {
-            case 1 -> inventory.addGame();
+            case 1 -> addGame();
             case 2 -> inventory.removeGame();
-            case 3 -> {}
+            case 3 -> {
+            }
             default -> System.out.println("❌ Invalid option. Please choose 1 or 2.");
         }
     }
@@ -109,6 +110,7 @@ public class AppManager {
             System.out.println("❌ Invalid console type. Please enter one of: PLAYSTATION, XBOX, NINTENDO, SEGA, PC.");
         }
     }
+
     private void tradeInGame() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n=== ♻️ Trade-In Game ===");
@@ -216,4 +218,125 @@ public class AppManager {
         Inventory inventory = new Inventory();
         return inventory;
     }
-}
+
+    // ➕ Add a game with robust validation (quantity, types, ranges)
+    public void addGame() {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\n--- ➕ Add New Game ---");
+
+        System.out.print("Enter game title: ");
+        String title = sc.nextLine().trim();
+        if (title.isEmpty()) {
+            System.out.println("❌ Title cannot be empty.");
+            return;
+        }
+
+        // Console type (loop until valid)
+        ConsoleType console;
+        while (true) {
+            System.out.print("Enter console type (PLAYSTATION, XBOX, NINTENDO, SEGA, PC): ");
+            String consoleStr = sc.nextLine().trim().toUpperCase();
+            try {
+                console = ConsoleType.valueOf(consoleStr);
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Invalid console type. Try again.");
+            }
+        }
+
+        // Find existing game (same title + console) to compute how many we can add
+//        Game existing = null;
+//        for (Game g : games) {
+//            if (g.getTitle().equalsIgnoreCase(title) && g.getConsoleType() == console) {
+//                existing = g;
+//                break;
+//            }
+//        }
+//
+//        int existingQty = (existing == null) ? 0 : existing.getQuantity();
+//        int allowedToAdd = MAX_STOCK_PER_GAME - existingQty;
+//
+//        if (allowedToAdd <= 0) {
+//            System.out.println("⚠️ Stock for this game is already at the maximum (" + MAX_STOCK_PER_GAME + ").");
+//            return;
+//        }
+        // Year (basic sane range; adjust if you like)
+        int year = readIntInRange(sc, "Enter year of release", 1970, 2100);
+
+        // Price (non-negative)
+        double price = readDoubleMin(sc, "Enter price (£)", 0.0);
+        // Quantity (must be integer and within range allowed)
+
+        int quantity = readIntInRange(sc, "Enter quantity:",1,10);// (1.." + allowedToAdd + ")", 1, allowedToAdd);
+        //todo Create game instance
+        Game g1 = new Game(title, console, year, quantity, price);
+
+        //todo Check if exists and add or create new
+        try {
+            boolean added = inventory.addGame(g1);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+            Game existing = inventory.searchGame(title);
+            if (existing != null) {
+                existing.setQuantity(g1.getQuantity() + quantity);
+                // Optional: update price if you want to overwrite; comment out to keep old price
+                existing.setPrice(price);
+                System.out.println("📈 Updated stock for: " + existing.getTitle() +
+                        " | New stock: " + existing.getQuantity() +
+                        " | Price: £" + String.format("%.2f", existing.getPrice()));
+            } else {
+                Game newGame = new Game(title, console, year, quantity, price);
+                try {
+                    inventory.addGame(newGame);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    return;
+                }
+                try {
+                    inventory.addGame(newGame);
+                    System.out.println("✅ Added new game: " + newGame);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    return;
+                }
+
+            }
+        }
+
+        public int readIntInRange (Scanner sc, String prompt,int min, int max){
+            while (true) {
+                System.out.print(prompt + ": ");
+                String line = sc.nextLine().trim();
+                try {
+                    int val = Integer.parseInt(line);
+                    if (val < min || val > max) {
+                        System.out.println("❌ Please enter a number between " + min + " and " + max + ".");
+                    } else {
+                        return val;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("❌ Please enter a valid integer.");
+                }
+            }
+        }
+
+        public double readDoubleMin (Scanner sc, String prompt,double minInclusive){
+            while (true) {
+                System.out.print(prompt + ": ");
+                String line = sc.nextLine().trim();
+                try {
+                    double val = Double.parseDouble(line);
+                    if (val < minInclusive) {
+                        System.out.println("❌ Value must be at least " + minInclusive + ".");
+                    } else {
+                        return val;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("❌ Please enter a valid number.");
+                }
+            }
+        }
+    }
