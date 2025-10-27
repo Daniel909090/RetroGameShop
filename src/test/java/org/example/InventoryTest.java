@@ -26,7 +26,6 @@ class InventoryTest {
         Game mario = new Game("Super Mario", ConsoleType.NINTENDO, 1985, 2, 25.99);
         inventory.addGame(mario);
         int after = inventory.getGames().size();
-
         assertTrue(after >= before, "Inventory size should increase after adding a new game.");
     }
 

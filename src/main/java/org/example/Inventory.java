@@ -11,7 +11,9 @@ public class Inventory {
     public Inventory() {
         games = Game.getAllGames(); // Loads pre-defined games from Game class
     }
-
+    public ArrayList<Game> getGames() {
+        return games;
+    }
     public void displayAllGames() {
         if (games.isEmpty()) {
             System.out.println("📦 Inventory empty!");
@@ -22,7 +24,8 @@ public class Inventory {
 
         // Loop through each console type in order
         for (ConsoleType console : ConsoleType.values()) {
-            System.out.println("\n" + getConsoleEmoji(console) + " " + console + " Games:");
+            System.out.println("\n" + console.getEmoji() + " " + console + " Games:");
+
             boolean hasGames = false;
 
             for (Game g : games) {
@@ -38,82 +41,24 @@ public class Inventory {
         }
     }
 
-    private String getConsoleEmoji(ConsoleType console) {
-        return switch (console) {
-            case PLAYSTATION -> "🎮";
-            case XBOX -> "🧩";
-            case NINTENDO -> "🍄";
-            case SEGA -> "🕹️";
-            case PC -> "💻";
-        };
-    }
+    public void searchGame() {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter game title or console type to search: ");
+        String keyword = sc.nextLine().trim().toLowerCase();
 
-    public void searchGame(String keyword) {
         boolean found = false;
-        System.out.println("\n🔍 Search results for: " + keyword);
-
-        // Normalize the keyword for comparison
-        String search = keyword.toLowerCase().trim();
-
         for (Game g : games) {
-            String title = g.getTitle().toLowerCase();
-            String console = g.getConsoleType().toString().toLowerCase();
-
-            // ✅ Match if the keyword appears in either title or console
-            if (title.contains(search) || console.contains(search)) {
+            if (g.getTitle().toLowerCase().contains(keyword) ||
+                    g.getConsoleType().toString().toLowerCase().contains(keyword)) {
                 System.out.println(g);
                 found = true;
             }
         }
 
-
-
         if (!found) {
             System.out.println("❌ No matching games found.");
         }
     }
-
-     //FOR JUNIT TESTS
-    // ✅ For programmatic or JUnit use
-    public void addGame(Game game) {
-        for (Game g : games) {
-            if (g.getTitle().equalsIgnoreCase(game.getTitle())
-                    && g.getConsoleType() == game.getConsoleType()) {
-
-                int newQty = g.getQuantity() + game.getQuantity();
-                if (newQty > MAX_STOCK_PER_GAME) {
-                    g.setQuantity(MAX_STOCK_PER_GAME);
-                    System.out.println("⚠️ Stock limited to 10 units.");
-                } else {
-                    g.setQuantity(newQty);
-                }
-                return;
-            }
-        }
-        games.add(game);
-        System.out.println("✅ Game added: " + game.getTitle());
-    }
-
-    // ✅ For automated tests or backend logic — remove a specific number of copies
-    public void removeGame(String title, ConsoleType console, int quantity) {
-        for (Game g : games) {
-            if (g.getTitle().equalsIgnoreCase(title) && g.getConsoleType() == console) {
-                int newQty = g.getQuantity() - quantity;
-
-                if (newQty <= 0) {
-                    g.setQuantity(0);
-                    System.out.println("⚠️ " + g.getTitle() + " is now out of stock!");
-                } else {
-                    g.setQuantity(newQty);
-                    System.out.println("✅ Removed " + quantity + " copy(ies) of " + g.getTitle());
-                }
-                return;
-            }
-        }
-
-        System.out.println("❌ Game not found in inventory.");
-    }
-
 
 
     // ➕ Add a game with robust validation (quantity, types, ranges)
@@ -160,7 +105,7 @@ public class Inventory {
         }
 
         // Year (basic sane range; adjust if you like)
-        int year = readIntInRange(sc, "Enter year of release", 1970, 2100);
+        int year = readIntInRange(sc, "Enter year of release", 1970, 2026);
 
         // Quantity (must be integer and within range allowed)
         int quantity = readIntInRange(sc,
@@ -225,7 +170,7 @@ public class Inventory {
 
         System.out.println("\n--- 🗑️ Remove Game Copies ---");
 
-        // ✅ Show current games for reference
+        //  Show current games for reference
         if (games.isEmpty()) {
             System.out.println("📦 Inventory empty! Nothing to remove.");
             return;
@@ -244,7 +189,7 @@ public class Inventory {
             return;
         }
 
-        // ✅ Validate console type (loop until valid)
+        //  Validate console type (loop until valid)
         ConsoleType console;
         while (true) {
             System.out.print("Enter console type (PLAYSTATION, XBOX, NINTENDO, SEGA, PC): ");
@@ -257,7 +202,7 @@ public class Inventory {
             }
         }
 
-        // ✅ Search for exact game
+        //  Search for exact game
         Game targetGame = null;
         for (Game g : games) {
             if (g.getTitle().equalsIgnoreCase(title) && g.getConsoleType() == console) {
@@ -266,7 +211,7 @@ public class Inventory {
             }
         }
 
-        // ✅ If not found, show suggestions by partial name or console
+        //  If not found, show suggestions by partial name or console
         if (targetGame == null) {
             System.out.println("❌ Game not found for that title/console.");
             System.out.println("💡 Similar games you might mean:");
@@ -304,8 +249,4 @@ public class Inventory {
         }
     }
 
-    // ✅ Single getter (no need for both)
-    public ArrayList<Game> getGames() {
-        return games;
-    }
 }

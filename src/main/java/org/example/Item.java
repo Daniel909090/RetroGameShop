@@ -1,6 +1,5 @@
 package org.example;
 
-
 public abstract class Item {
     protected String title;
     protected double price;
@@ -12,12 +11,15 @@ public abstract class Item {
         this.year = year;
     }
 
-    public String getTitle() { return title; }
-    public double getPrice() { return price; }
-    public int getYear() { return year; }
+    public String getTitle() {
+        return title; }
+    public double getPrice() {
+        return price; }
 
-    public void setPrice(double price) { this.price = price; }
+    public int getYear() {
+        return year; }
 
-    // ✅ Every item must be displayed differently
-    public abstract void displayInfo();
+    public void setPrice(double price) {
+        this.price = price; }
+
 }

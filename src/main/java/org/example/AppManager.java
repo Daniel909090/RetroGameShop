@@ -41,12 +41,12 @@ public class AppManager {
 
             switch (choice) {
                 case 1 -> inventory.displayAllGames();
-                case 2 -> searchGame();
+                case 2 -> inventory.searchGame();
                 case 3 -> manageInventory();
                 case 4 -> makeSale();
                 case 5 -> tradeInGame();
-                case 6 -> manageCustomers();  // ✅ returns safely
-                case 7 -> System.out.println("👋 Exiting program...");
+                case 6 -> manageCustomers();
+                case 7 -> System.out.println(" Exiting program...");
                 default -> System.out.println("❌ Invalid option.");
             }
 
@@ -54,12 +54,7 @@ public class AppManager {
     }
 
 
-    private void searchGame() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter game name to search: ");
-        String name = sc.nextLine();
-        inventory.searchGame(name);
-    }
+
 
     private void manageInventory() {
         Scanner sc = new Scanner(System.in);
@@ -186,7 +181,7 @@ public class AppManager {
         boolean found = false;
         for (Customer c : customers) {
             if (c.getName().equalsIgnoreCase(name)) {
-                c.displayTransactions(); // ✅ shows their history
+                c.displayCustomerTransactions(); // ✅ shows their history
                 found = true;
                 break;
             }
