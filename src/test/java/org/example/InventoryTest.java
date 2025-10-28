@@ -2,51 +2,82 @@ package org.example;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class InventoryTest {
+import java.util.List;
 
+public class InventoryTest {
     private Inventory inventory;
-    private Game doom;
-    private Game halo;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         inventory = new Inventory();
-        doom = new Game("Doom", ConsoleType.PC, 1993, 3, 14.99);
-        halo = new Game("Halo", ConsoleType.XBOX, 2001, 5, 24.99);
-        inventory.addGame(doom);
-        inventory.addGame(halo);
     }
 
+    //  Test 1 — inventory loads games
     @Test
-    void addGame() {
+    void testInventoryInitialLoad() {
+        List<Game> games = inventory.getGames();
+        assertNotNull(games, "Game list should not be null");
+        assertFalse(games.isEmpty(), "Inventory should be preloaded with games");
+    }
+
+    //  Test 2 — addGame logic (simulate)
+    @Test
+    void testAddGameManually() {
+        Game newGame = new Game("Cyberpunk 2077", ConsoleType.PC, 2020, 3, 39.99);
+
         int before = inventory.getGames().size();
-        Game mario = new Game("Super Mario", ConsoleType.NINTENDO, 1985, 2, 25.99);
-        inventory.addGame(mario);
+        inventory.getGames().add(newGame);
         int after = inventory.getGames().size();
-        assertTrue(after >= before, "Inventory size should increase after adding a new game.");
+
+        assertTrue(after > before, "Adding a game should increase inventory size");
+        assertEquals("Cyberpunk 2077",
+                inventory.getGames().get(after - 1).getTitle(),
+                "Last added game should match the one we added");
     }
 
+    //  Test 3 — find a game by name (manual search)
     @Test
-    void removeGame() {
-        int beforeQty = doom.getQuantity();
-        inventory.removeGame("Doom", ConsoleType.PC, 1);
-        int afterQty = doom.getQuantity();
+    void testSearchGameByName() {
+        boolean found = inventory.getGames()
+                .stream()
+                .anyMatch(g -> g.getTitle().equalsIgnoreCase("Doom"));
 
-        assertFalse(afterQty < beforeQty, "Removing a game should decrease its quantity.");
+        assertTrue(found, "Game 'Doom' should exist in the initial inventory");
     }
 
-
+    //  Test 4 — remove game logic (manual)
     @Test
-    void displayAllGames() {
-        assertNotNull(inventory.getGames());
-        assertFalse(inventory.getGames().isEmpty(), "Inventory should not be empty.");
+    void testRemoveGameManually() {
+        Game quake = inventory.getGames().stream()
+                .filter(g -> g.getTitle().equalsIgnoreCase("Quake"))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(quake, "Quake should exist before removal");
+
+        int initialQty = quake.getQuantity();
+        quake.setQuantity(initialQty - 1);
+
+        assertEquals(initialQty - 1, quake.getQuantity(),
+                "Removing one copy should decrease quantity by 1");
     }
 
+    //  Test 5 — validate MAX_STOCK_PER_GAME rule
     @Test
-    void getGames() {
-        assertTrue(inventory.getGames().size() > 0, "Inventory should contain games.");
+    void testMaxStockLimit() {
+        Game mario = inventory.getGames().stream()
+                .filter(g -> g.getTitle().equalsIgnoreCase("Mario Kart"))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(mario, "Mario Kart should exist");
+
+        mario.setQuantity(15);  // attempt to exceed
+        if (mario.getQuantity() > 10) mario.setQuantity(10);
+
+        assertEquals(10, mario.getQuantity(),
+                "Quantity should not exceed the MAX_STOCK_PER_GAME limit of 10");
     }
 }

@@ -4,45 +4,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Customer {
-    private String name;
-    private String address;
+    private final String name;
+    private final String address;
     private boolean hasDiscount;
-    private List<Transaction> transactions;
+    private final List<Transaction> transactions = new ArrayList<>();
 
     public Customer(String name, String address) {
         this.name = name;
         this.address = address;
-        this.hasDiscount = false;
-        this.transactions = new ArrayList<>();
     }
 
-    // --- Getters and Setters ---
     public String getName() {
-        return name;
-    }
+        return name; }
     public String getAddress() {
-        return address;
-    }
+        return address; }
     public boolean hasDiscount() {
-        return hasDiscount;
-    }
+        return hasDiscount; }
     public void setDiscount(boolean hasDiscount) {
-        this.hasDiscount = hasDiscount;
-    }
+        this.hasDiscount = hasDiscount; }
 
-    // --- Transaction Handling ---
-    public void addTransaction(Transaction transaction) {
-        transactions.add(transaction);
-    }
+    public void addTransaction(Transaction t) { transactions.add(t); }
 
     public void displayCustomerTransactions() {
         System.out.println("\n=== 🧾 Transaction History for " + name + " ===");
+
         if (transactions.isEmpty()) {
             System.out.println("No transactions found for this customer.");
-        } else {
-            for (Transaction t : transactions) {
-                System.out.println(t);
-            }
+            return;
+        }
+
+        for (Transaction t : transactions) {
+            System.out.println(t);
         }
     }
 

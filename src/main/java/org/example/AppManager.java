@@ -4,135 +4,115 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class AppManager {
-    private Inventory inventory;
-    private ArrayList<Customer> customers = new ArrayList<>();
-
-    public AppManager() {
-        this.inventory = getInventory();
-    }
+    private final Inventory inventory = new Inventory();
+    private final ArrayList<Customer> customers = new ArrayList<>();
 
     public static void main(String[] args) {
-        AppManager app = new AppManager();
-        app.run();
-
+        new AppManager().run();
     }
+    //  Public getter for Inventory, needed for testing and integration
+    public Inventory getInventory() {
+        return inventory;
+    }
+
 
     public void run() {
         Scanner sc = new Scanner(System.in);
         int choice;
-
         do {
             System.out.println("\n=== 🎮 Game Shop Main Menu ===");
-            System.out.println("1. Display all games");
-            System.out.println("2. Search Game");
-            System.out.println("3. Manage inventory");
-            System.out.println("4. Make sale");
-            System.out.println("5. Trade-in game");
+            System.out.println("1. Display inventory");
+            System.out.println("2. Search game");
+            System.out.println("3. Add/Remove game");
+            System.out.println("4. Sell game");
+            System.out.println("5. Trade-in");
             System.out.println("6. Manage customers");
             System.out.println("7. Exit");
-            System.out.print("Choose an option: ");
+            System.out.print("Choice: ");
 
-            while (!sc.hasNextInt()) {
-                System.out.print("❌ Please enter a valid number: ");
-                sc.next();
-            }
             choice = sc.nextInt();
             sc.nextLine();
 
             switch (choice) {
-                case 1 -> inventory.displayAllGames();
-                case 2 -> inventory.searchGame();
-                case 3 -> manageInventory();
-                case 4 -> makeSale();
-                case 5 -> tradeInGame();
+                case 1 -> inventory.displayInventory();
+                case 2 -> handleSearch(sc);
+                case 3 -> manageInventory(sc);
+                case 4 -> handleSale(sc);
+                case 5 -> handleTradeIn(sc);
                 case 6 -> manageCustomers();
-                case 7 -> System.out.println(" Exiting program...");
-                default -> System.out.println("❌ Invalid option.");
+                case 7 -> System.out.println("👋 Goodbye!");
+                default -> System.out.println("❌ Invalid choice.");
             }
 
-        } while (choice != 7); // ✅ only exits when user chooses Exit
+        } while (choice != 7);
+    }
+
+    // --- Menu Options ---
+
+
+    private void handleSearch(Scanner sc) {
+        System.out.print("Enter title or console: ");
+        String keyword = sc.nextLine();
+        Game g = inventory.searchGame(keyword);
+        System.out.println(g != null ? g : "❌ Not found.");
+    }
+
+
+    private void manageInventory(Scanner sc) {
+        System.out.println("1. Add Game | 2. Remove Game");
+        int opt = sc.nextInt(); sc.nextLine();
+        if (opt == 1) addGame(sc);
+        else if (opt == 2) removeGame(sc);
+    }
+
+
+    private void addGame(Scanner sc) {
+        System.out.print("Title: "); String title = sc.nextLine();
+        System.out.print("Console: "); ConsoleType console = ConsoleType.valueOf(sc.nextLine().toUpperCase());
+        System.out.print("Year: "); int year = sc.nextInt(); sc.nextLine();
+        System.out.print("Quantity: "); int qty = sc.nextInt(); sc.nextLine();
+        System.out.print("Price: "); double price = sc.nextDouble(); sc.nextLine();
+
+        inventory.addGame(new Game(title, console, year, qty, price));
+        System.out.println("✅ Game added.");
+    }
+
+
+    private void removeGame(Scanner sc) {
+        System.out.print("Title: "); String title = sc.nextLine();
+        System.out.print("Console: "); ConsoleType console = ConsoleType.valueOf(sc.nextLine().toUpperCase());
+        System.out.print("Quantity to remove: "); int qty = sc.nextInt();
+        boolean removed = inventory.removeGame(title, console, qty);
+        System.out.println(removed ? "🗑️ Removed successfully." : "❌ Game not found.");
     }
 
 
 
+    private void handleSale(Scanner sc) {
+        System.out.print("Customer name: "); String name = sc.nextLine();
+        System.out.print("Address: "); String address = sc.nextLine();
+        Customer c = getOrCreateCustomer(name, address);
 
-    private void manageInventory() {
-        Scanner sc = new Scanner(System.in);
+        System.out.print("Game name: "); String game = sc.nextLine();
+        System.out.print("Console: "); ConsoleType console = ConsoleType.valueOf(sc.nextLine().toUpperCase());
 
-        System.out.println("\n=== ⚙️ Inventory Management ===");
-        System.out.println("1. ➕ Add a new game");
-        System.out.println("2. 🗑️ Remove a game");
-        System.out.println("3. Return to main menu");
-        System.out.print("Choose an option: ");
-        int option = sc.nextInt();
-        sc.nextLine(); // consume newline
-
-        switch (option) {
-            case 1 -> inventory.addGame();
-            case 2 -> inventory.removeGame();
-            case 3 -> {}
-            default -> System.out.println("❌ Invalid option. Please choose 1 or 2.");
-        }
+        Transaction.sellGame(inventory, game, console, c);
     }
 
+    private void handleTradeIn(Scanner sc) {
+        System.out.print("Customer name: "); String name = sc.nextLine();
+        System.out.print("Address: "); String address = sc.nextLine();
+        Customer c = getOrCreateCustomer(name, address);
 
-    private void makeSale() {
-        Scanner sc = new Scanner(System.in);
+        System.out.print("Game name: "); String game = sc.nextLine();
+        System.out.print("Console: "); ConsoleType console = ConsoleType.valueOf(sc.nextLine().toUpperCase());
 
-        System.out.print("Enter customer name: ");
-        String name = sc.nextLine().trim();
-        System.out.print("Enter address: ");
-        String address = sc.nextLine().trim();
-
-        //  Get existing or create new customer
-        Customer customer = getOrCreateCustomer(name, address);
-
-        System.out.print("Enter game name to sell: ");
-        String gameName = sc.nextLine().trim();
-
-        System.out.print("Enter console type (PLAYSTATION, XBOX, NINTENDO, SEGA, PC): ");
-        String consoleStr = sc.nextLine().trim().toUpperCase();
-
-        try {
-            ConsoleType console = ConsoleType.valueOf(consoleStr);
-
-            // ✅ Perform the sale — method handles success/failure messages internally
-            Transaction.sellGame(inventory, gameName, console, customer);
-
-
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ Invalid console type. Please enter one of: PLAYSTATION, XBOX, NINTENDO, SEGA, PC.");
-        }
-    }
-    private void tradeInGame() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("\n=== ♻️ Trade-In Game ===");
-
-        System.out.print("Enter customer name: ");
-        String name = sc.nextLine();
-
-        System.out.print("Enter customer address: ");
-        String address = sc.nextLine();
-
-        Customer customer = getOrCreateCustomer(name, address);
-
-        System.out.print("Enter game title to trade in: ");
-        String title = sc.nextLine();
-
-        System.out.print("Enter console type (PLAYSTATION, XBOX, NINTENDO, SEGA, PC): ");
-        String consoleStr = sc.nextLine().trim().toUpperCase();
-
-        try {
-            ConsoleType console = ConsoleType.valueOf(consoleStr);
-            Transaction.tradeInGame(inventory, customer, title, console);
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ Invalid console type.");
-        }
+        Transaction.tradeInGame(inventory, c, game, console);
     }
 
     private void manageCustomers() {
         Scanner sc = new Scanner(System.in);
-        int option = 0;
+        int option;
 
         do {
             System.out.println("\n=== 👥 Customer Management ===");
@@ -157,58 +137,56 @@ public class AppManager {
                 default -> System.out.println("❌ Invalid option. Try again.");
             }
 
-        } while (option != 4); // ✅ loop until user chooses “Back”
+        } while (option != 4); //  loop until user chooses “Back”
     }
 
-
+    //  1) List all customers
     private void displayAllCustomers() {
         if (customers.isEmpty()) {
-            System.out.println("📭 No customers found.");
+            System.out.println(" No customers found.");
             return;
         }
 
-        System.out.println("\n=== 👥 All Customers ===");
+        System.out.println("\n===  All Customers (" + customers.size() + ") ===");
         for (Customer c : customers) {
-            System.out.println(c);
+            System.out.println("- " + c); // uses Customer.toString()
         }
     }
 
+    // 📜 2) View a single customer's transaction history
     private void viewCustomerHistory() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter customer name: ");
         String name = sc.nextLine().trim();
 
-        boolean found = false;
+        Customer match = null;
         for (Customer c : customers) {
             if (c.getName().equalsIgnoreCase(name)) {
-                c.displayCustomerTransactions(); // ✅ shows their history
-                found = true;
+                match = c;
                 break;
             }
         }
 
-        if (!found) {
+        if (match == null) {
             System.out.println("❌ No customer found with that name.");
+            if (!customers.isEmpty()) {
+                System.out.println("💡 Existing customers:");
+                for (Customer c : customers) System.out.println("  • " + c.getName());
+            }
+            return;
         }
-    }
 
+        match.displayCustomerTransactions();
+    }
 
     private Customer getOrCreateCustomer(String name, String address) {
-        for (Customer c : customers) {
-            if (c.getName().equalsIgnoreCase(name)) {
-                return c; // existing customer found
-            }
-        }
-
-        // if not found, create new one
-        Customer newCustomer = new Customer(name, address);
-        customers.add(newCustomer);
-        System.out.println("👤 New customer added: " + name);
-        return newCustomer;
-    }
-
-    public Inventory getInventory() {
-        Inventory inventory = new Inventory();
-        return inventory;
+        return customers.stream()
+                .filter(c -> c.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseGet(() -> {
+                    Customer newC = new Customer(name, address);
+                    customers.add(newC);
+                    return newC;
+                });
     }
 }
